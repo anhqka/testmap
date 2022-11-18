@@ -26,12 +26,12 @@ const stores = [
 ]
 
 const App = () => {
-  const [ currentPosition, setCurrentPosition] = useState({})
+  const [currentPosition, setCurrentPosition] = useState({})
   const [state, setState] = useState([])
   let distanceLocationStore = []
   let currentLocation = []
   let distance = []
-  
+
 
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(position => {
@@ -61,7 +61,7 @@ const App = () => {
     return radians;
   }
 
-  if(currentPosition.latitude && currentPosition.latitude > 0){
+  if (currentPosition.latitude && currentPosition.latitude > 0) {
     currentLocation = {
       latitude: currentPosition.latitude,
       longitude: currentPosition.longitude,
@@ -72,16 +72,16 @@ const App = () => {
       distanceLocationStore = [...distanceLocationStore, result]
     })
 
-    distance =  distanceLocationStore.sort((a,b) => -a.distanceInKilometers + b.distanceInKilometers)
-  
+    distance = distanceLocationStore.sort((a, b) => -a.distanceInKilometers + b.distanceInKilometers)
+
   }
 
   console.log(distance[0]?.destinationCoords);
-  const center = {
-    lat: distance[1]?.destinationCoords?.latitude ? distance[1].destinationCoords.latitude : -3.745,
-    lng: distance[1]?.destinationCoords?.longitude ? distance[1].destinationCoords.longitude : -38.523,
-  };
-  
+  const [center, setCenter] = useState({
+    lat: distance[1]?.destinationCoords?.latitude ? distance[1].destinationCoords.latitude : 21.034556009902545,
+    lng: distance[1]?.destinationCoords?.longitude ? distance[1].destinationCoords.longitude : 105.7838773695639,
+  })
+
   const { isLoaded } = useJsApiLoader({
     id: 'google-map-script',
     googleMapsApiKey: apiKey
@@ -95,13 +95,15 @@ const App = () => {
     map.fitBounds(bounds);
 
     setMap(map)
-  }, [])
+  }, [center])
 
   const onUnmount = React.useCallback(function callback(map) {
     setMap(null)
   }, [])
 
+
   return isLoaded ? (
+    <div className='flex'>
       <GoogleMap
         mapContainerStyle={mapStyles}
         center={center}
@@ -114,13 +116,24 @@ const App = () => {
           center.lat ?
             <Marker
               position={center}
-              draggable={true} 
+              draggable={true}
               zoom={10}
-              /> :
+            /> :
             null
         }
         <></>
       </GoogleMap>
+      <p>
+        {distance.map((store) => {
+          return (
+            <div onClick={() => setCenter({
+              lat: store.destinationCoords.latitude,
+              lng: store.destinationCoords.longitude
+            })}>{store.destinationCoords.name}</div>
+          )
+        })}
+      </p>
+    </div>
   ) : <></>
 }
 export default App
