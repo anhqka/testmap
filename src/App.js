@@ -1,6 +1,11 @@
 import React, { useEffect, useState } from 'react'
-
+import { GoogleMap, Marker, useJsApiLoader } from '@react-google-maps/api';
 const apiKey = "AIzaSyAKjzo9xWrPixaFhBnb9uerRNpATN1xTng"
+
+const mapStyles = {
+  height: "80vh",
+  width: "80%"
+};
 
 const stores = [
   {
@@ -70,11 +75,51 @@ const App = () => {
     distance =  distanceLocationStore.sort((a,b) => -a.distanceInKilometers + b.distanceInKilometers)
   
   }
+
+  console.log(distance[0]?.destinationCoords);
+  const center = {
+    lat: distance[1]?.destinationCoords?.latitude ? distance[1].destinationCoords.latitude : -3.745,
+    lng: distance[1]?.destinationCoords?.longitude ? distance[1].destinationCoords.longitude : -38.523,
+  };
   
-  return (
-    <div id="dist">
-      {state}
-    </div>
-  )
+  const { isLoaded } = useJsApiLoader({
+    id: 'google-map-script',
+    googleMapsApiKey: apiKey
+  })
+
+  const [map, setMap] = React.useState(null)
+
+  const onLoad = React.useCallback(function callback(map) {
+    // This is just an example of getting and using the map instance!!! don't just blindly copy!
+    const bounds = new window.google.maps.LatLngBounds(center);
+    map.fitBounds(bounds);
+
+    setMap(map)
+  }, [])
+
+  const onUnmount = React.useCallback(function callback(map) {
+    setMap(null)
+  }, [])
+
+  return isLoaded ? (
+      <GoogleMap
+        mapContainerStyle={mapStyles}
+        center={center}
+        zoom={10}
+        onLoad={onLoad}
+        onUnmount={onUnmount}
+      >
+        {
+          center.lat ?
+            <Marker
+              position={center}
+              draggable={true} 
+              zoom={10}
+              /> :
+            null
+        }
+        <></>
+      </GoogleMap>
+  ) : <></>
 }
 export default App
