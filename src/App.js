@@ -1,11 +1,6 @@
-import React, { useEffect, useState } from 'react'
-import { GoogleMap, Marker, useJsApiLoader } from '@react-google-maps/api';
-const apiKey = "AIzaSyAKjzo9xWrPixaFhBnb9uerRNpATN1xTng"
+import { useEffect, useState } from "react"
+import Map from "./component/Map"
 
-const mapStyles = {
-  height: "80vh",
-  width: "80%"
-};
 
 const stores = [
   {
@@ -26,13 +21,9 @@ const stores = [
 ]
 
 const App = () => {
-  const [currentPosition, setCurrentPosition] = useState({})
-  const [state, setState] = useState([])
   let distanceLocationStore = []
+  const [currentPosition, setCurrentPosition] = useState({})
   let currentLocation = []
-  let distance = []
-
-
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(position => {
       setCurrentPosition(position.coords)
@@ -56,6 +47,7 @@ const App = () => {
       destinationCoords
     };
   }
+
   function degreesToRadians(degrees) {
     var radians = (degrees * Math.PI) / 150;
     return radians;
@@ -71,69 +63,29 @@ const App = () => {
       let result = calcDistance(currentLocation, store)
       distanceLocationStore = [...distanceLocationStore, result]
     })
-
-    distance = distanceLocationStore.sort((a, b) => -a.distanceInKilometers + b.distanceInKilometers)
-
   }
 
-  console.log(distance[0]?.destinationCoords);
-  const [center, setCenter] = useState({
-    lat: distance[1]?.destinationCoords?.latitude ? distance[1].destinationCoords.latitude : 21.034556009902545,
-    lng: distance[1]?.destinationCoords?.longitude ? distance[1].destinationCoords.longitude : 105.7838773695639,
-  })
+  let distance = distanceLocationStore.sort((a, b) => a.distanceInKilometers - b.distanceInKilometers)
 
-  const { isLoaded } = useJsApiLoader({
-    id: 'google-map-script',
-    googleMapsApiKey: apiKey
-  })
-
-  const [map, setMap] = React.useState(null)
-
-  const onLoad = React.useCallback(function callback(map) {
-    // This is just an example of getting and using the map instance!!! don't just blindly copy!
-    const bounds = new window.google.maps.LatLngBounds(center);
-    map.fitBounds(bounds);
-
-    setMap(map)
-  }, [center])
-
-  const onUnmount = React.useCallback(function callback(map) {
-    setMap(null)
-  }, [])
-
-
-  return isLoaded ? (
-    <div className='flex'>
-      <GoogleMap
-        mapContainerStyle={mapStyles}
-        center={center}
-        zoom={10}
-        onLoad={onLoad}
-        onUnmount={onUnmount}
-      >
-        {/* sss */}
-        {
-          center.lat ?
-            <Marker
-              position={center}
-              draggable={true}
-              zoom={10}
-            /> :
-            null
-        }
-        <></>
-      </GoogleMap>
-      <p>
-        {distance.map((store) => {
+  return (
+    <div>
+      <div>1990</div>
+      {distance.length > 0 && <Map distance={distance} />}
+      
+      <div>
+        {distanceLocationStore.map((store) => {
           return (
-            <div onClick={() => setCenter({
-              lat: store.destinationCoords.latitude,
-              lng: store.destinationCoords.longitude
-            })}>{store.destinationCoords.name}</div>
+            <div>
+              <div>{store.destinationCoords.name}</div>
+              <div> khoảng cách {store.distanceInKilometers.toFixed(1)} KM</div>
+            </div>
+
           )
         })}
-      </p>
+      </div>
     </div>
-  ) : <></>
+
+  )
 }
+
 export default App
